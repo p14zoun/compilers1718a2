@@ -8,24 +8,11 @@ NOTE: This progam is a language recognizer only.
 Sample grammar from p.242 of:
 Grune, Dick, Jacobs, Ceriel J.H., "Parsing Techniques, A Practical Guide" 2nd ed.,Springer 2008.
 
-Session  -> Facts Question | ( Session ) Session
-Facts    -> Fact Facts | ε
-Fact     -> ! string
-Question -> ? string
-
 FIRST sets
 ----------
-Session:  ( ? !
-Facts:    ε !
-Fact:     !
-Question: ?
 
 FOLLOW sets
 -----------
-Session:  # )
-Facts:    ?
-Fact:     ! ?
-Question: # )
   
 
 """
@@ -55,25 +42,20 @@ class MyParser:
 
     
     
-    #metablites boolean logikon timon aneksartita apo paiza kefalaia
+    #metabliti boolean logikon timon aneksartita apo paiza kefalaia
+    	
+    boolean = plex.Str("0","1","true" , "false","t" , "f")
     
-		bool1 = plex.Str("true" , "false")
-		bool2 = plex.Str("t" , "f")		
-		bool3 = plex.Str("0","1")
-    
-    AND=plex.Str("AND")
-    OR=plex.Str("OR")
-    NOT=plex.Str("NOT")
+    ANDOR=plex.Str("and","or")
+    NOT=plex.Str("not")
 
     string=plex.Rep1(letter | digit)
-    operator=plex.Any('AND', 'OR', 'NOT')
+    operator=plex.Any('and', 'or', 'not')
     space=plex.Any("\t\n")
 
 		# the scanner lexicon - constructor argument is a list of (pattern,action ) tuples
 		lexicon = plex.Lexicon([
-			(bool1,plex.TEXT),
-			(bool2,plex.TEXT),
-			(bool3,plex.TEXT),
+      (boolean ,plex.TEXT),
       (AND,plex.TEXT),
       (OR,plex.TEXT),
       (NOT,plex.TEXT),
@@ -125,7 +107,7 @@ class MyParser:
 	def session(self):
 		""" Session  -> Facts Question | ( Session ) Session """
 		
-		if self.la=='AND' or self.la=='NOT':
+		if self.la=='and' or self.la=='not':
 			self.facts()
 			self.question()
 		elif self.la=='(':
@@ -134,39 +116,39 @@ class MyParser:
 			self.match(')')
 			self.session()	
 		else:
-			raise ParseError("in session: AND/NOT")
+			raise ParseError("in session: and, not")
 			 	
 	
 	def facts(self):
-		""" Facts -> Fact Facts | ε """
+		""" Facts -> Fact Facts | Â """
 		
-		if self.la=='AND':
+		if self.la=='and':
 			self.fact()
 			self.facts()
-		elif self.la=='NOT':	# from FOLLOW set!
+		elif self.la=='not':	# from FOLLOW set!
 			return
 		else:
-			raise ParseError("in facts: AND/NOT expected")
+			raise ParseError("in facts: and, not expected")
 	
 	
 	def fact(self):
 		""" Fact -> ! string """
 		
-		if self.la=='NOT':
+		if self.la=='not':
 			self.match('')
 			self.match('string')
 		else:
-			raise ParseError("in fact: NOT")
+			raise ParseError("in fact: not")
 			 	
 
 	def question(self):
 		""" Question -> ? string """
 		
-		if self.la=='AND':
-			self.match('AND')
+		if self.la=='and':
+			self.match('and')
 			self.match('string')
 		else:
-			raise ParseError("in question: AND")
+			raise ParseError("in question: and")
 
 		
 # the main part of prog
@@ -175,7 +157,7 @@ class MyParser:
 parser = MyParser()
 
 # open file for parsing
-with open("recursive-descent-parsing.txt","r") as fp:
+with open("file.txt","r") as fp:
 
 	# parse file
 	try:
